@@ -1,0 +1,26 @@
+[
+{
+  "directory": "/home/joulej/repos/simple_data_base/build",
+  "command": "/usr/bin/c++  -I/home/joulej/repos/simple_data_base/.  -o CMakeFiles/core.dir/server/core/row.cpp.o -c /home/joulej/repos/simple_data_base/server/core/row.cpp",
+  "file": "/home/joulej/repos/simple_data_base/server/core/row.cpp",
+  "output": "CMakeFiles/core.dir/server/core/row.cpp.o"
+},
+{
+  "directory": "/home/joulej/repos/simple_data_base/build",
+  "command": "/usr/bin/c++  -I/home/joulej/repos/simple_data_base/.  -o CMakeFiles/core.dir/server/core/table.cpp.o -c /home/joulej/repos/simple_data_base/server/core/table.cpp",
+  "file": "/home/joulej/repos/simple_data_base/server/core/table.cpp",
+  "output": "CMakeFiles/core.dir/server/core/table.cpp.o"
+},
+{
+  "directory": "/home/joulej/repos/simple_data_base/build",
+  "command": "/usr/bin/c++  -I/home/joulej/repos/simple_data_base/.  -o CMakeFiles/core.dir/server/core/types.cpp.o -c /home/joulej/repos/simple_data_base/server/core/types.cpp",
+  "file": "/home/joulej/repos/simple_data_base/server/core/types.cpp",
+  "output": "CMakeFiles/core.dir/server/core/types.cpp.o"
+},
+{
+  "directory": "/home/joulej/repos/simple_data_base/build",
+  "command": "/usr/bin/c++  -I/home/joulej/repos/simple_data_base/.  -o CMakeFiles/core.dir/server/core/value.cpp.o -c /home/joulej/repos/simple_data_base/server/core/value.cpp",
+  "file": "/home/joulej/repos/simple_data_base/server/core/value.cpp",
+  "output": "CMakeFiles/core.dir/server/core/value.cpp.o"
+}
+]
