@@ -58,6 +58,4 @@ bool Row::operator==(const Row &other) const {
   return true;
 }
 
-bool Row::operator!=(const Row &other) const {
-  return !(*this == other);
-}
+bool Row::operator!=(const Row &other) const { return !(*this == other); }

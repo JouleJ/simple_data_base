@@ -13,8 +13,8 @@ class TestCaseSerializeDeserializeRow : public TestCase {
   Row row;
 
 public:
-  TestCaseSerializeDeserializeRow(Row desiredRow): row(std::move(desiredRow)) {
-  }
+  TestCaseSerializeDeserializeRow(Row desiredRow)
+      : row(std::move(desiredRow)) {}
 
   std::string getName() const override {
     return std::string("serialize-and-deserialize/row/") + row.toString();
@@ -32,19 +32,22 @@ public:
 const int _ = []() -> int {
   {
     Row emptyRow;
-    registerTestCase(std::make_unique<TestCaseSerializeDeserializeRow>(std::move(emptyRow)));
+    registerTestCase(
+        std::make_unique<TestCaseSerializeDeserializeRow>(std::move(emptyRow)));
   }
 
   {
     Row singularIntegerRow;
     singularIntegerRow.append(std::make_unique<IntegerValue>(42));
-    registerTestCase(std::make_unique<TestCaseSerializeDeserializeRow>(std::move(singularIntegerRow)));
+    registerTestCase(std::make_unique<TestCaseSerializeDeserializeRow>(
+        std::move(singularIntegerRow)));
   }
 
   {
     Row singularVarcharRow;
     singularVarcharRow.append(std::make_unique<VarcharValue>("hello world"));
-    registerTestCase(std::make_unique<TestCaseSerializeDeserializeRow>(std::move(singularVarcharRow)));
+    registerTestCase(std::make_unique<TestCaseSerializeDeserializeRow>(
+        std::move(singularVarcharRow)));
   }
 
   {
@@ -55,8 +58,9 @@ const int _ = []() -> int {
     row.append(std::make_unique<IntegerValue>(15));
     row.append(std::make_unique<VarcharValue>("\nworld"));
 
-    registerTestCase(std::make_unique<TestCaseSerializeDeserializeRow>(std::move(row)));
+    registerTestCase(
+        std::make_unique<TestCaseSerializeDeserializeRow>(std::move(row)));
   }
 
-  return  0;
+  return 0;
 }();

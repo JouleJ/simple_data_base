@@ -29,39 +29,40 @@ std::string quote(const std::string &s) {
     const unsigned char chr = s[i];
 
     switch (chr) {
-    case '\n':
-      buf << "\\n";
-      break;
+      case '\n':
+        buf << "\\n";
+        break;
 
-    case '\t':
-      buf << "\\t";
-      break;
+      case '\t':
+        buf << "\\t";
+        break;
 
-    case '\r':
-      buf << "\\r";
-      break;
+      case '\r':
+        buf << "\\r";
+        break;
 
-    case '\0':
-      buf << "\\0";
-      break;
+      case '\0':
+        buf << "\\0";
+        break;
 
-    case '"':
-      buf << "\\\"";
-      break;
+      case '"':
+        buf << "\\\"";
+        break;
 
-    case '\\':
-      buf << "\\\\";
-      break;
+      case '\\':
+        buf << "\\\\";
+        break;
 
-    default: {
-      if (MIN_ASCII_PRINTABLE <= chr && chr <= MAX_ASCII_PRINTABLE) {
-        buf << chr;
-      } else {
-        buf << "\\x" << str2hex(chr);
-      }
-    }
+      default:
+        {
+          if (MIN_ASCII_PRINTABLE <= chr && chr <= MAX_ASCII_PRINTABLE) {
+            buf << chr;
+          } else {
+            buf << "\\x" << str2hex(chr);
+          }
+        }
 
-    break;
+        break;
     }
   }
 

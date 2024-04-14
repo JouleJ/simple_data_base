@@ -58,7 +58,7 @@ public:
 
   const Type *getType() const override;
   std::string toString() const override;
-  bool isEqualTo(const Value *other)  const override;
+  bool isEqualTo(const Value *other) const override;
 
   int get() const;
 
@@ -74,7 +74,7 @@ public:
 
   const Type *getType() const override;
   std::string toString() const override;
-  bool isEqualTo(const Value *other)  const override;
+  bool isEqualTo(const Value *other) const override;
 
   const std::string &get() const;
 

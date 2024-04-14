@@ -32,14 +32,14 @@ int deserializeInteger(std::istream &is) {
 
   const Sign lastTok = static_cast<Sign>(buf[head - 1]);
   switch (lastTok) {
-  case Sign::PLUS:
-    return result;
+    case Sign::PLUS:
+      return result;
 
-  case Sign::MINUS:
-    return -result;
+    case Sign::MINUS:
+      return -result;
 
-  case Sign::ZERO:
-    return 0;
+    case Sign::ZERO:
+      return 0;
   }
 
   throw std::runtime_error("Invalaid sign: " +
@@ -94,14 +94,14 @@ const Type *TypeDeserializer::getNext() {
   const TypeKind typeKind = static_cast<TypeKind>(typeKindId);
 
   switch (typeKind) {
-  case TypeKind::INTEGER:
-    return getPrimitiveTypeByName("integer");
+    case TypeKind::INTEGER:
+      return getPrimitiveTypeByName("integer");
 
-  case TypeKind::VARCHAR:
-    return getPrimitiveTypeByName("varchar");
+    case TypeKind::VARCHAR:
+      return getPrimitiveTypeByName("varchar");
 
-  default:
-    break;
+    default:
+      break;
   }
 
   throw std::runtime_error("Unknown typeKindId: " + std::to_string(typeKindId));
@@ -126,8 +126,8 @@ std::unique_ptr<Value> ValueDeserializer::getNext() {
   throw std::runtime_error("Unknown type: cannot deserialize value");
 }
 
-RowDeserializer::RowDeserializer(std::istream &desiredIs): BaseDeserializer(desiredIs) {
-}
+RowDeserializer::RowDeserializer(std::istream &desiredIs)
+    : BaseDeserializer(desiredIs) {}
 
 Row RowDeserializer::getNext() {
   const size_t rowSize = deserializeSize(is);

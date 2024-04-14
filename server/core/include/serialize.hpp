@@ -1,5 +1,6 @@
 #pragma once
 
+#include "server/core/include/hashable.hpp"
 #include <cstddef>
 #include <cstdint>
 #include <ostream>
@@ -15,11 +16,12 @@ enum class Sign : uint8_t {
   ZERO = 0x83,
 };
 
-class ISerializable {
+class ISerializable : public IHashable {
 public:
   virtual ~ISerializable() = default;
 
   virtual void writeTo(std::ostream &os) const = 0;
+  uint64_t getHash() const override;
 };
 
 void serializeToStream(int i, std::ostream &os);
