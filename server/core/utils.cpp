@@ -1,8 +1,11 @@
 #include "server/core/include/utils.hpp"
+#include "server/core/include/stringable.hpp"
 
 #include <algorithm>
 #include <bits/chrono.h>
+#include <ostream>
 #include <sstream>
+#include <stdexcept>
 
 std::string str2hex(unsigned long long int value) {
   std::string result;
@@ -76,3 +79,118 @@ uint64_t getCurrentEpoch() {
              std::chrono::system_clock::now().time_since_epoch())
       .count();
 }
+
+Formatter::Formatter(const char *desiredFormatString, std::ostream &desiredOs)
+    : formatString(desiredFormatString), os(desiredOs) {}
+
+Formatter::~Formatter() {
+  while (seek()) {
+  }
+}
+
+int Formatter::seek() {
+  while (*formatString) {
+    if (*formatString == '%') {
+      ++formatString;
+
+      if (*formatString != '%') {
+        if (*formatString == '\0') {
+          throw std::runtime_error("Trailing percent sign in format string");
+        }
+
+        return *formatString;
+      } else {
+        ++formatString;
+      }
+    } else {
+      os.write(formatString++, 1);
+    }
+  }
+
+  return 0;
+}
+
+void Formatter::accept(int i) {
+  const int seekResult = seek();
+  switch (seekResult) {
+    case '\0':
+      throw std::runtime_error("Too many arguments in a format string");
+
+    case 's':
+    case 'd':
+      os << i;
+      break;
+
+    case 'h':
+      os << str2hex(i);
+      break;
+
+    default:
+      throw std::runtime_error(
+          std::string("Invalid format specifier for integer: ") +
+          std::string(1, seekResult));
+  }
+}
+
+void Formatter::accept(size_t size) {
+  const int seekResult = seek();
+  switch (seekResult) {
+    case '\0':
+      throw std::runtime_error("Too many arguments in a format string");
+
+    case 's':
+    case 'd':
+      os << size;
+      break;
+
+    case 'h':
+      os << str2hex(size);
+      break;
+
+    default:
+      throw std::runtime_error(
+          std::string("Invalid format specifier for size_t: ") +
+          std::string(1, seekResult));
+  }
+}
+
+void Formatter::accept(const std::string &string) {
+  const int seekResult = seek();
+  switch (seekResult) {
+    case '\0':
+      throw std::runtime_error("Too many arguments in a format string");
+
+    case 's':
+      os << string;
+      break;
+
+    case 'q':
+      os << quote(string);
+      break;
+
+    default:
+      throw std::runtime_error(
+          std::string("Invalid format specifier for string: ") +
+          std::string(1, seekResult));
+  }
+}
+
+void Formatter::accept(const IStringable &object) {
+  const int seekResult = seek();
+  switch (seekResult) {
+    case '\0':
+      throw std::runtime_error("Too many arguments in a format string");
+
+    case 's':
+    case 'o':
+      os << object.toString();
+      break;
+
+    default:
+      throw std::runtime_error(
+          std::string("Invalid format specifier for object: ") +
+          std::string(1, seekResult));
+  }
+}
+
+template <> void sendToFormatter<>(Formatter &formatter) {}
