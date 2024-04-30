@@ -105,11 +105,13 @@ public:
 };
 
 class Table : public ISerializable {
-  std::vector<const Type *> rowTypes;
+  std::vector<const Type *> columnTypes;
   std::vector<Row> rows;
 
 public:
-  Table(std::vector<const Type *> desiredRowTypes);
+  Table(std::vector<const Type *> desiredColumnTypes);
+  Table(Table &&other) = default;
+  Table(const Table &other) = delete;
   ~Table() override = default;
 
   void append(Row row);

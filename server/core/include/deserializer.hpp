@@ -18,7 +18,10 @@ public:
   BaseDeserializer(std::istream &desiredIs) : is(desiredIs) {}
   ~BaseDeserializer() override = default;
 
-  bool hasNext() override { return is.eof() == 0; }
+  bool hasNext() override {
+    is.peek();
+    return is.eof() == 0;
+  }
 };
 
 class TypeDeserializer : public BaseDeserializer<const Type *> {

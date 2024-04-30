@@ -1,7 +1,9 @@
 #include "server/core/include/deserializer.hpp"
+#include "server/core/include/hashable.hpp"
 #include "server/core/include/meta.hpp"
 #include "server/core/include/serialize.hpp"
 
+#include <istream>
 #include <stdexcept>
 #include <string>
 
@@ -139,4 +141,20 @@ Row RowDeserializer::getNext() {
   }
 
   return row;
+}
+
+uint64_t deserializeHashFromStream(std::istream &is) {
+  uint64_t result = 0ULL;
+  unsigned char buf[8];
+
+  is.read(reinterpret_cast<char *>(&buf[0]), sizeof(buf));
+  if (is.gcount() != sizeof(buf)) {
+    throw std::runtime_error("Failed to read hash: unexpected EOF");
+  }
+
+  for (uint64_t i = 0; i < 8; ++i) {
+    result |= (static_cast<uint64_t>(buf[i]) << (8ULL * i));
+  }
+
+  return result;
 }

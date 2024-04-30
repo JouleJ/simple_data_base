@@ -101,3 +101,12 @@ void Table::writeTo(std::ostream &os) const {
     serializeToStream(row, os);
   }
 }
+
+void serializeHashToStream(uint64_t hash, std::ostream &os) {
+  unsigned char buf[8];
+  for (uint64_t i = 0; i < 8; ++i) {
+    buf[i] = (hash >> (8ULL * i)) & static_cast<uint64_t>(0xFF);
+  }
+
+  os.write(reinterpret_cast<char *>(&buf[0]), 8);
+}

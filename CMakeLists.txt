@@ -6,9 +6,13 @@ file(GLOB CORE_CPP_FILES server/core/*.cpp)
 add_library(core ${CORE_CPP_FILES})
 target_include_directories(core PRIVATE .)
 
+file(GLOB PERSISTENT_CPP_FILES server/persistent/*.cpp)
+add_library(persistent ${PERSISTENT_CPP_FILES})
+target_include_directories(persistent PRIVATE .)
+
 file(GLOB_RECURSE TEST_CPP_FILES server/test/*.cpp)
 add_executable(unittests ${TEST_CPP_FILES})
-target_link_libraries(unittests core)
+target_link_libraries(unittests core persistent)
 target_include_directories(unittests PRIVATE .)
 
 add_test(NAME UnitTests COMMAND unittests)

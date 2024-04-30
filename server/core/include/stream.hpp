@@ -1,8 +1,10 @@
 #pragma once
 
 #include <algorithm>
+#include <optional>
 #include <stdexcept>
 #include <vector>
+
 template <typename T> class IStream {
 public:
   virtual ~IStream() = default;
@@ -11,9 +13,9 @@ public:
   virtual T getNext() = 0;
 };
 
-template <typename T> T fetchOne(IStream<T> &stream) {
+template <typename T> std::optional<T> fetchOne(IStream<T> &stream) {
   if (!stream.hasNext()) {
-    throw std::runtime_error("Cannot fetch element from empty stream");
+    return {};
   }
 
   return stream.getNext();

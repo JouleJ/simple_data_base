@@ -5,7 +5,7 @@
 #include <cstdint>
 #include <sstream>
 
-static uint64_t splitmix64(uint64_t state) {
+uint64_t splitmix64(uint64_t state) {
   state += 0x9E3779B97F4A7C15;
   state = (state ^ (state >> 30ULL)) * 0xBF58476D1CE4E5B9;
   state = (state ^ (state >> 27ULL)) * 0x94D049BB133111EB;

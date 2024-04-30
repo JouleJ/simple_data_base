@@ -1,6 +1,7 @@
 #include "server/core/include/utils.hpp"
 
 #include <algorithm>
+#include <bits/chrono.h>
 #include <sstream>
 
 std::string str2hex(unsigned long long int value) {
@@ -68,4 +69,10 @@ std::string quote(const std::string &s) {
 
   buf << '"';
   return buf.str();
+}
+
+uint64_t getCurrentEpoch() {
+  return std::chrono::duration_cast<std::chrono::milliseconds>(
+             std::chrono::system_clock::now().time_since_epoch())
+      .count();
 }
