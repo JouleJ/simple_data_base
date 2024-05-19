@@ -109,6 +109,22 @@ const Type *TypeDeserializer::getNext() {
   throw std::runtime_error("Unknown typeKindId: " + std::to_string(typeKindId));
 }
 
+ColumnDeserializer::ColumnDeserializer(std::istream &desiredIs)
+    : BaseDeserializer(desiredIs) {}
+
+Column ColumnDeserializer::getNext() {
+  Column column;
+  column.name = deserializeString(is);
+
+  TypeDeserializer typeDeserializer(is);
+  if (!typeDeserializer.hasNext()) {
+    throw std::runtime_error("Unexpected EOF when trying to parse column type");
+  }
+
+  column.type = typeDeserializer.getNext();
+  return column;
+}
+
 ValueDeserializer::ValueDeserializer(std::istream &desiredIs)
     : BaseDeserializer(desiredIs) {}
 

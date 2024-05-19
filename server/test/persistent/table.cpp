@@ -32,12 +32,18 @@ public:
       return;
     }
 
+    std::vector<Column> columns;
+    size_t columnIdx = 0U;
+    for (const Type *type : rows.front().getTypes()) {
+      columns.push_back(Column(std::to_string(columnIdx++), type));
+    }
+
     IStorage &storage = getStorage();
 
     const uint64_t metaDataChunk = allocateChunk(storage);
     clearChunk(storage, metaDataChunk);
 
-    initializePersistentTable(storage, metaDataChunk, rows.front().getTypes());
+    initializePersistentTable(storage, metaDataChunk, columns);
     for (const Row &row : rows) {
       insertRowIntoPersistentTable(storage, metaDataChunk, row);
     }

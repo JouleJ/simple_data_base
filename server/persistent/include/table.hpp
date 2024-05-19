@@ -15,7 +15,7 @@ constexpr size_t initialChunkCount = 2ULL;
 constexpr size_t maxAllowedRowsPerChunk = 100'000ULL;
 
 struct PersistentTableMetaData : public ISerializable {
-  std::vector<const Type *> columnTypes;
+  std::vector<Column> columns;
   std::vector<uint64_t> chunks;
   size_t rowCount = 0ULL;
 
@@ -32,12 +32,12 @@ public:
 };
 
 void initializePersistentTable(IStorage &storage, uint64_t metaDataChunk,
-                               std::vector<const Type *> columnTypes);
+                               std::vector<Column> columns);
 void insertRowIntoPersistentTable(IStorage &storage, uint64_t metaDataChunk,
                                   const Row &row);
 Table readPersistentTable(IStorage &storage, uint64_t metaDataChunk);
 
 void updatePersistentTable(IStorage &storage, uint64_t metaDataChunk,
                            std::function<Row(const Row &row)> mapping);
-void eraseFromPersistentTable(uint64_t metaDataChunk,
+void eraseFromPersistentTable(IStorage &storage, uint64_t metaDataChunk,
                               std::function<bool(const Row &row)> predicate);

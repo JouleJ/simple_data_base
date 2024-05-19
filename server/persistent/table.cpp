@@ -13,11 +13,11 @@
 #include <stdexcept>
 
 void PersistentTableMetaData::writeTo(std::ostream &os) const {
-  const size_t columnCount = columnTypes.size();
+  const size_t columnCount = columns.size();
   serializeToStream(columnCount, os);
 
   for (size_t i = 0; i != columnCount; ++i) {
-    serializeToStream(*columnTypes.at(i), os);
+    serializeToStream(columns.at(i), os);
   }
 
   const size_t chunkCount = chunks.size();
@@ -38,16 +38,16 @@ PersistentTableMetaData PersistentTableMetaDataDeserializer::getNext() {
   PersistentTableMetaData ptmd;
 
   const size_t columnCount = deserializeSize(is);
-  ptmd.columnTypes.reserve(columnCount);
+  ptmd.columns.reserve(columnCount);
 
-  TypeDeserializer td(is);
+  ColumnDeserializer columnDeserializer(is);
   for (size_t i = 0; i != columnCount; ++i) {
-    std::optional<const Type *> columnType = fetchOne(td);
-    if (columnType) {
-      ptmd.columnTypes.push_back(columnType.value());
+    std::optional<Column> column = fetchOne(columnDeserializer);
+    if (column) {
+      ptmd.columns.push_back(column.value());
     } else {
-      throw std::runtime_error(
-          "Failed to read column type while parsing persistent table metadata");
+      throw std::runtime_error("Failed to read column specification while "
+                               "parsing persistent table metadata");
     }
   }
 
@@ -63,9 +63,9 @@ PersistentTableMetaData PersistentTableMetaDataDeserializer::getNext() {
 }
 
 void initializePersistentTable(IStorage &storage, uint64_t metaDataChunk,
-                               std::vector<const Type *> columnTypes) {
+                               std::vector<Column> columns) {
   PersistentTableMetaData ptmd;
-  ptmd.columnTypes = std::move(columnTypes);
+  ptmd.columns = std::move(columns);
   ptmd.rowCount = 0ULL;
 
   ptmd.chunks.reserve(initialChunkCount);
@@ -78,7 +78,7 @@ void initializePersistentTable(IStorage &storage, uint64_t metaDataChunk,
 
   storage.writeSerializible(metaDataChunk, ptmd);
   getLogger().info("Created table on %h, colTypes = %v, chunks = %v",
-                   metaDataChunk, ptmd.columnTypes, ptmd.chunks);
+                   metaDataChunk, ptmd.columns, ptmd.chunks);
 }
 
 static void increaseChunkCount(IStorage &storage, uint64_t metaDataChunk,
@@ -154,7 +154,7 @@ Table readPersistentTable(IStorage &storage, uint64_t metaDataChunk) {
                              "attempting to full scan a table into memory");
   }
 
-  Table table(ptmd->columnTypes);
+  Table table(ptmd->columns);
   for (uint64_t chunkId : ptmd->chunks) {
     storage.read(chunkId, [&](std::istream &is) -> void {
       RowDeserializer rowDeserializer(is);
@@ -188,6 +188,40 @@ void updatePersistentTable(IStorage &storage, uint64_t metaDataChunk,
       while (rowDeserializer.hasNext()) {
         const Row row = rowDeserializer.getNext();
         rowBuffer.push_back(mapping(row));
+      }
+    });
+
+    storage.write(chunkId, [&](std::ostream &os) -> void {
+      for (const Row &row : rowBuffer) {
+        row.writeTo(os);
+      }
+    });
+  }
+}
+
+void eraseFromPersistentTable(IStorage &storage, uint64_t metaDataChunk,
+                              std::function<bool(const Row &row)> predicate) {
+  std::optional<PersistentTableMetaData> ptmd;
+  storage.read(metaDataChunk, [&](std::istream &is) -> void {
+    PersistentTableMetaDataDeserializer ptmdDeserializer(is);
+    ptmd = fetchOne(ptmdDeserializer);
+  });
+
+  if (!ptmd) {
+    throw std::runtime_error("Failed to read persistent table meta data while "
+                             "attempting to erase from table by predicate");
+  }
+
+  std::vector<Row> rowBuffer;
+  for (uint64_t chunkId : ptmd->chunks) {
+    rowBuffer.clear();
+    storage.read(chunkId, [&](std::istream &is) -> void {
+      RowDeserializer rowDeserializer(is);
+      while (rowDeserializer.hasNext()) {
+        const Row row = rowDeserializer.getNext();
+        if (predicate(row)) {
+          rowBuffer.emplace_back(std::move(row));
+        }
       }
     });
 

@@ -32,6 +32,14 @@ public:
   const Type *getNext() override;
 };
 
+class ColumnDeserializer : public BaseDeserializer<Column> {
+public:
+  ColumnDeserializer(std::istream &desiredIs);
+  ~ColumnDeserializer() override = default;
+
+  Column getNext() override;
+};
+
 class ValueDeserializer : public BaseDeserializer<std::unique_ptr<Value>> {
 public:
   ValueDeserializer(std::istream &desiredIs);

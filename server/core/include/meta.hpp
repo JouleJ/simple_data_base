@@ -116,14 +116,25 @@ public:
   std::string toString() const override;
 };
 
+struct Column : public ISerializable, public IStringable {
+  std::string name;
+  const Type *type;
+
+  Column() = default;
+  Column(std::string desiredName, const Type *desiredType);
+
+  void writeTo(std::ostream &os) const override;
+  std::string toString() const override;
+};
+
 class Table : public ISerializable {
-  std::vector<const Type *> columnTypes;
+  std::vector<Column> columns;
   std::vector<Row> rows;
 
 public:
-  Table(std::vector<const Type *> desiredColumnTypes);
+  Table(std::vector<Column> desiredColumns);
   Table(Table &&other) = default;
-  Table(const Table &other) = delete;
+  Table(const Table &other) = default;
   ~Table() override = default;
 
   void append(Row row);
@@ -132,6 +143,7 @@ public:
   size_t getRowCount() const;
   const Row *row_at_const(size_t i) const;
   const std::vector<Row> &toVector() const;
+  std::vector<const Type *> getTypes() const;
 
   void writeTo(std::ostream &os) const override;
 };
