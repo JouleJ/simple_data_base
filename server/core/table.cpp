@@ -18,3 +18,5 @@ Row *Table::row_at(size_t idx) { return &rows.at(idx); }
 size_t Table::getRowCount() const { return rows.size(); }
 
 const Row *Table::row_at_const(size_t idx) const { return &rows.at(idx); }
+
+const std::vector<Row> &Table::toVector() const { return rows; }

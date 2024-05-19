@@ -1,5 +1,6 @@
 #include "server/persistent/include/table.hpp"
 #include "server/core/include/deserializer.hpp"
+#include "server/core/include/logger.hpp"
 #include "server/core/include/serialize.hpp"
 #include "server/core/include/stream.hpp"
 #include "server/persistent/include/storage.hpp"
@@ -76,11 +77,17 @@ void initializePersistentTable(IStorage &storage, uint64_t metaDataChunk,
   }
 
   storage.writeSerializible(metaDataChunk, ptmd);
+  getLogger().info("Created table on %h, colTypes = %v, chunks = %v",
+                   metaDataChunk, ptmd.columnTypes, ptmd.chunks);
 }
 
 static void increaseChunkCount(IStorage &storage, uint64_t metaDataChunk,
                                PersistentTableMetaData &ptmd) {
+
   const size_t chunkCount = 2ULL * ptmd.chunks.size() + 1ULL;
+  getLogger().info("Increase chunk count on %h from %v to %v", metaDataChunk,
+                   ptmd.chunks.size(), chunkCount);
+
   std::vector<uint64_t> chunks;
   chunks.reserve(chunkCount);
 
@@ -158,4 +165,36 @@ Table readPersistentTable(IStorage &storage, uint64_t metaDataChunk) {
   }
 
   return table;
+}
+
+void updatePersistentTable(IStorage &storage, uint64_t metaDataChunk,
+                           std::function<Row(const Row &row)> mapping) {
+  std::optional<PersistentTableMetaData> ptmd;
+  storage.read(metaDataChunk, [&](std::istream &is) -> void {
+    PersistentTableMetaDataDeserializer ptmdDeserializer(is);
+    ptmd = fetchOne(ptmdDeserializer);
+  });
+
+  if (!ptmd) {
+    throw std::runtime_error("Failed to read persistent table meta data while "
+                             "attempting to perform full update on table");
+  }
+
+  std::vector<Row> rowBuffer;
+  for (uint64_t chunkId : ptmd->chunks) {
+    rowBuffer.clear();
+    storage.read(chunkId, [&](std::istream &is) -> void {
+      RowDeserializer rowDeserializer(is);
+      while (rowDeserializer.hasNext()) {
+        const Row row = rowDeserializer.getNext();
+        rowBuffer.push_back(mapping(row));
+      }
+    });
+
+    storage.write(chunkId, [&](std::ostream &os) -> void {
+      for (const Row &row : rowBuffer) {
+        row.writeTo(os);
+      }
+    });
+  }
 }

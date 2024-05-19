@@ -37,7 +37,7 @@ void insertRowIntoPersistentTable(IStorage &storage, uint64_t metaDataChunk,
                                   const Row &row);
 Table readPersistentTable(IStorage &storage, uint64_t metaDataChunk);
 
-void updatePersistentTable(uint64_t metaDataChunk,
+void updatePersistentTable(IStorage &storage, uint64_t metaDataChunk,
                            std::function<Row(const Row &row)> mapping);
 void eraseFromPersistentTable(uint64_t metaDataChunk,
                               std::function<bool(const Row &row)> predicate);

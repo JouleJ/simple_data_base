@@ -1,7 +1,17 @@
 #include "server/core/include/meta.hpp"
 #include "server/core/include/serialize.hpp"
 
+#include <iostream>
 #include <sstream>
+
+Row::Row(const Row &other) {
+  const size_t n = other.getSize();
+  values.reserve(n);
+
+  for (size_t i = 0U; i != n; ++i) {
+    values.push_back(other.at_const(i)->copy());
+  }
+}
 
 void Row::append(std::unique_ptr<Value> value) {
   values.push_back(std::move(value));
@@ -40,6 +50,18 @@ std::string Row::toString() const {
   return buf.str();
 }
 
+Row &Row::operator=(const Row &other) {
+  const size_t n = other.getSize();
+  values.clear();
+  values.reserve(n);
+
+  for (size_t i = 0U; i != n; ++i) {
+    values.push_back(other.at_const(i)->copy());
+  }
+
+  return *this;
+}
+
 bool Row::operator==(const Row &other) const {
   const size_t size = getSize();
   if (other.getSize() != size) {
@@ -48,7 +70,7 @@ bool Row::operator==(const Row &other) const {
 
   for (size_t i = 0; i != size; ++i) {
     const Value *element = at_const(i);
-    const Value *otherElement = at_const(i);
+    const Value *otherElement = other.at_const(i);
 
     if (!element->isEqualTo(otherElement)) {
       return false;
@@ -59,3 +81,18 @@ bool Row::operator==(const Row &other) const {
 }
 
 bool Row::operator!=(const Row &other) const { return !(*this == other); }
+
+bool Row::operator<(const Row &other) const {
+  const size_t n = std::min<size_t>(getSize(), other.getSize());
+  for (size_t i = 0; i != n; ++i) {
+    if (at_const(i)->isLessThan(other.at_const(i))) {
+      return true;
+    }
+
+    if (other.at_const(i)->isLessThan(at_const(i))) {
+      return false;
+    }
+  }
+
+  return getSize() < other.getSize();
+}

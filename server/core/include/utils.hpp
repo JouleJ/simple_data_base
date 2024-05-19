@@ -1,8 +1,10 @@
 #pragma once
 
+#include "server/core/include/meta.hpp"
 #include "server/core/include/stringable.hpp"
 #include <cstdint>
 #include <ostream>
+#include <stdexcept>
 #include <string>
 
 const unsigned long long int MIN_ASCII_PRINTABLE = 32;
@@ -22,6 +24,12 @@ class Formatter {
 
   int seek();
 
+  void formatSequenceElement(int i);
+  void formatSequenceElement(size_t size);
+  void formatSequenceElement(const std::string &string);
+  void formatSequenceElement(const IStringable &object);
+  void formatSequenceElement(const Type *type);
+
 public:
   Formatter(const char *desiredFormatString, std::ostream &desiredOs);
   ~Formatter();
@@ -30,39 +38,49 @@ public:
   void accept(size_t size);
   void accept(const std::string &string);
   void accept(const IStringable &object);
+  void accept(const Type *type);
+
+  template <typename T> void accept(const std::vector<T> &sequence) {
+    const int seekResult = seek();
+    switch (seekResult) {
+      case '\0':
+        throw std::runtime_error("Too many arguments for this format string");
+
+      case 's':
+      case 'v':
+        break;
+
+      default:
+        throw std::runtime_error(
+            std::string("Invalid format specifier for vector: ") +
+            std::string(1, seekResult));
+    }
+
+    os << "[";
+
+    const size_t n = sequence.size();
+    for (size_t i = 0U; i != n; ++i) {
+      if (i != 0U) {
+        os << ", ";
+      }
+
+      formatSequenceElement(sequence.at(i));
+    }
+
+    os << "]";
+  }
 };
 
-template <typename... Args>
-void sendToFormatter(Formatter &formatter, Args... args);
+void sendToFormatter(Formatter &formatter);
 
-template <typename... Args>
-void sendToFormatter(Formatter &formatter, int i, Args... args) {
-  formatter.accept(i);
-  sendToFormatter<Args...>(formatter, args...);
-}
-
-template <typename... Args>
-void sendToFormatter(Formatter &formatter, size_t size, Args... args) {
-  formatter.accept(size);
-  sendToFormatter<Args...>(formatter, args...);
-}
-
-template <typename... Args>
-void sendToFormatter(Formatter &formatter, const std::string &string,
-                     Args... args) {
-  formatter.accept(string);
-  sendToFormatter<Args...>(formatter, args...);
-}
-
-template <typename... Args>
-void sendToFormatter(Formatter &formatter, const IStringable &object,
-                     Args... args) {
-  formatter.accept(object);
-  sendToFormatter<Args...>(formatter, args...);
+template <typename T, typename... Args>
+void sendToFormatter(Formatter &formatter, T head, Args... tail) {
+  formatter.accept(head);
+  sendToFormatter(formatter, tail...);
 }
 
 template <typename... Args>
 void format(std::ostream &os, const char *formatString, Args... args) {
   Formatter formatter(formatString, os);
-  sendToFormatter<Args...>(formatter, args...);
+  sendToFormatter(formatter, args...);
 }

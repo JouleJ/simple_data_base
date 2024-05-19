@@ -1,5 +1,6 @@
 #pragma once
 
+#include "server/core/include/copyable.hpp"
 #include "server/core/include/serialize.hpp"
 #include "server/core/include/stringable.hpp"
 
@@ -38,7 +39,9 @@ bool compareTypes(const Type *left, const Type *right);
 bool compareTypeVectors(const std::vector<const Type *> &left,
                         const std::vector<const Type *> &right);
 
-class Value : public ISerializable, public IStringable {
+class Value : public ISerializable,
+              public IStringable,
+              public ICopyable<Value> {
 public:
   virtual ~Value() = default;
 
@@ -47,6 +50,7 @@ public:
 
   virtual const Type *getType() const = 0;
   virtual bool isEqualTo(const Value *other) const = 0;
+  virtual bool isLessThan(const Value *other) const = 0;
 };
 
 class IntegerValue : public Value {
@@ -59,10 +63,12 @@ public:
   const Type *getType() const override;
   std::string toString() const override;
   bool isEqualTo(const Value *other) const override;
+  bool isLessThan(const Value *other) const override;
 
   int get() const;
 
   void writeTo(std::ostream &os) const override;
+  std::unique_ptr<Value> copy() const override;
 };
 
 class VarcharValue : public Value {
@@ -75,10 +81,12 @@ public:
   const Type *getType() const override;
   std::string toString() const override;
   bool isEqualTo(const Value *other) const override;
+  bool isLessThan(const Value *other) const override;
 
   const std::string &get() const;
 
   void writeTo(std::ostream &os) const override;
+  std::unique_ptr<Value> copy() const override;
 };
 
 class Row : public ISerializable, public IStringable {
@@ -86,8 +94,9 @@ class Row : public ISerializable, public IStringable {
 
 public:
   Row() = default;
+  Row(const Row &other);
   Row(Row &&other) = default;
-  ;
+
   ~Row() override = default;
 
   void append(std::unique_ptr<Value> value);
@@ -97,6 +106,9 @@ public:
   std::vector<const Type *> getTypes() const;
   const Value *at_const(size_t i) const;
 
+  Row &operator=(const Row &other);
+
+  bool operator<(const Row &other) const;
   bool operator==(const Row &other) const;
   bool operator!=(const Row &other) const;
 
@@ -119,6 +131,7 @@ public:
 
   size_t getRowCount() const;
   const Row *row_at_const(size_t i) const;
+  const std::vector<Row> &toVector() const;
 
   void writeTo(std::ostream &os) const override;
 };

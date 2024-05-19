@@ -8,6 +8,7 @@ target_include_directories(core PRIVATE .)
 
 file(GLOB PERSISTENT_CPP_FILES server/persistent/*.cpp)
 add_library(persistent ${PERSISTENT_CPP_FILES})
+target_link_libraries(persistent core)
 target_include_directories(persistent PRIVATE .)
 
 file(GLOB_RECURSE TEST_CPP_FILES server/test/*.cpp)

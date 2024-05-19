@@ -43,22 +43,53 @@ public:
     }
 
     const Table memTable = readPersistentTable(storage, metaDataChunk);
-
-    const size_t n = rows.size();
-    assertEqualityByVal(memTable.getRowCount(), n);
-    for (size_t i = 0; i != n; ++i) {
-      assertEqualityByRef<Row>(*memTable.row_at_const(i), rows.at(i));
-    }
+    assertEqualityOfMultisets(rows, memTable.toVector());
   }
 };
 
 const int _0 = []() -> int {
   std::string name = "small/ints";
   std::vector<Row> rows;
-  for (int i = 0; i < 1; ++i) {
+  for (int i = 0; i < 10; ++i) {
     Row row;
     row.append(std::make_unique<IntegerValue>(10 * i));
     row.append(std::make_unique<IntegerValue>(10 * i + 1));
+    row.append(std::make_unique<IntegerValue>(10 * i + 2));
+
+    rows.push_back(std::move(row));
+  }
+
+  registerTestCase(
+      std::make_unique<PersistentTableInsertAndFullScanIntoMemoryTestCase>(
+          std::move(name), std::move(rows)));
+  return 0;
+}();
+
+const int _1 = []() -> int {
+  std::string name = "big/ints";
+  std::vector<Row> rows;
+  for (int i = 0; i < 100'000; ++i) {
+    Row row;
+    row.append(std::make_unique<IntegerValue>(10 * i));
+    row.append(std::make_unique<IntegerValue>(10 * i + 1));
+    row.append(std::make_unique<IntegerValue>(10 * i + 2));
+
+    rows.push_back(std::move(row));
+  }
+
+  registerTestCase(
+      std::make_unique<PersistentTableInsertAndFullScanIntoMemoryTestCase>(
+          std::move(name), std::move(rows)));
+  return 0;
+}();
+
+const int _2 = []() -> int {
+  std::string name = "big/misc";
+  std::vector<Row> rows;
+  for (int i = 0; i < 100'000; ++i) {
+    Row row;
+    row.append(std::make_unique<IntegerValue>(10 * i));
+    row.append(std::make_unique<VarcharValue>(std::to_string(15 * i + 6)));
     row.append(std::make_unique<IntegerValue>(10 * i + 2));
 
     rows.push_back(std::move(row));

@@ -32,7 +32,10 @@ protected:
     ofs << elapsedSeconds << "s] ";
   }
 
-  void flush() override { ofs.flush(); }
+  void flush() override {
+    ofs << "\n";
+    ofs.flush();
+  }
 
 public:
   FileLogger() {

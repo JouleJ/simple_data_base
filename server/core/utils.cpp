@@ -98,9 +98,9 @@ int Formatter::seek() {
           throw std::runtime_error("Trailing percent sign in format string");
         }
 
-        return *formatString;
+        return *formatString++;
       } else {
-        ++formatString;
+        os.write(formatString++, 1);
       }
     } else {
       os.write(formatString++, 1);
@@ -118,6 +118,7 @@ void Formatter::accept(int i) {
 
     case 's':
     case 'd':
+    case 'v':
       os << i;
       break;
 
@@ -136,10 +137,11 @@ void Formatter::accept(size_t size) {
   const int seekResult = seek();
   switch (seekResult) {
     case '\0':
-      throw std::runtime_error("Too many arguments in a format string");
+      throw std::runtime_error("Too many arguments for this format string");
 
     case 's':
     case 'd':
+    case 'v':
       os << size;
       break;
 
@@ -158,9 +160,10 @@ void Formatter::accept(const std::string &string) {
   const int seekResult = seek();
   switch (seekResult) {
     case '\0':
-      throw std::runtime_error("Too many arguments in a format string");
+      throw std::runtime_error("Too many arguments for this format string");
 
     case 's':
+    case 'v':
       os << string;
       break;
 
@@ -179,10 +182,11 @@ void Formatter::accept(const IStringable &object) {
   const int seekResult = seek();
   switch (seekResult) {
     case '\0':
-      throw std::runtime_error("Too many arguments in a format string");
+      throw std::runtime_error("Too many arguments for this format string");
 
     case 's':
     case 'o':
+    case 'v':
       os << object.toString();
       break;
 
@@ -193,4 +197,39 @@ void Formatter::accept(const IStringable &object) {
   }
 }
 
-template <> void sendToFormatter<>(Formatter &formatter) {}
+void Formatter::accept(const Type *type) {
+  const int seekResult = seek();
+  switch (seekResult) {
+    case '\0':
+      throw std::runtime_error("Too many arguments for this format string");
+
+    case 's':
+    case 'v':
+    case 't':
+      os << type->getName();
+      break;
+
+    default:
+      throw std::runtime_error(
+          std::string("Invalid format specifier for type: ") +
+          std::string(1, seekResult));
+  }
+}
+
+void Formatter::formatSequenceElement(int i) { os << i; }
+
+void Formatter::formatSequenceElement(size_t size) { os << size; }
+
+void Formatter::formatSequenceElement(const std::string &string) {
+  os << quote(string);
+}
+
+void Formatter::formatSequenceElement(const IStringable &object) {
+  os << object.toString();
+}
+
+void Formatter::formatSequenceElement(const Type *type) {
+  os << type->getName();
+}
+
+void sendToFormatter(Formatter &formatter) {}
