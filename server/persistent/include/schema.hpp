@@ -7,6 +7,7 @@
 #include <cstdint>
 #include <istream>
 #include <map>
+#include <optional>
 #include <ostream>
 #include <string>
 #include <vector>
@@ -29,3 +30,7 @@ void initializeSchema(IStorage &storage, uint64_t metaDataChunk);
 void createTableInSchema(IStorage &storage, uint64_t metaDataChunk,
                          const std::string &tableName,
                          std::vector<Column> columns);
+
+std::optional<uint64_t> findTableInSchema(IStorage &storage,
+                                          uint64_t metaDataChunk,
+                                          const std::string &tableName);

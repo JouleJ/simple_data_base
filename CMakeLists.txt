@@ -11,9 +11,14 @@ add_library(persistent ${PERSISTENT_CPP_FILES})
 target_link_libraries(persistent core)
 target_include_directories(persistent PRIVATE .)
 
+file(GLOB QUERY_CPP_FILES server/query/*.cpp)
+add_library(query ${QUERY_CPP_FILES})
+target_link_libraries(query core persistent)
+target_include_directories(query PRIVATE .)
+
 file(GLOB_RECURSE TEST_CPP_FILES server/test/*.cpp)
 add_executable(unittests ${TEST_CPP_FILES})
-target_link_libraries(unittests core persistent)
+target_link_libraries(unittests core persistent query)
 target_include_directories(unittests PRIVATE .)
 
 add_test(NAME UnitTests COMMAND unittests)

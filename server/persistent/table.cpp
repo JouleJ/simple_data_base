@@ -1,6 +1,7 @@
 #include "server/persistent/include/table.hpp"
 #include "server/core/include/deserializer.hpp"
 #include "server/core/include/logger.hpp"
+#include "server/core/include/meta.hpp"
 #include "server/core/include/serialize.hpp"
 #include "server/core/include/stream.hpp"
 #include "server/persistent/include/storage.hpp"
@@ -8,6 +9,8 @@
 
 #include <iostream>
 #include <istream>
+#include <map>
+#include <memory>
 #include <optional>
 #include <ostream>
 #include <stdexcept>
@@ -231,4 +234,73 @@ void eraseFromPersistentTable(IStorage &storage, uint64_t metaDataChunk,
       }
     });
   }
+}
+
+Table selectFromPersistentTable(IStorage &storage, uint64_t metaDataChunk,
+                                const std::vector<std::string> &columnNames,
+                                std::function<bool(const Row &row)> predicate) {
+  std::optional<PersistentTableMetaData> ptmd;
+  storage.read(metaDataChunk, [&](std::istream &is) -> void {
+    PersistentTableMetaDataDeserializer ptmdDeserializer(is);
+    ptmd = fetchOne(ptmdDeserializer);
+  });
+
+  if (!ptmd) {
+    throw std::runtime_error("Failed to read persistent table meta data while "
+                             "attempting to select from table");
+  }
+
+  std::map<std::string, Column> columnsByName;
+  std::map<std::string, size_t> indicesByName;
+
+  size_t index = 0;
+  for (const auto &column : ptmd->columns) {
+    columnsByName[column.name] = column;
+    indicesByName[column.name] = index++;
+  }
+
+  std::vector<Column> columns;
+  std::vector<size_t> indices;
+  columns.reserve(columnNames.size());
+  indices.reserve(columnNames.size());
+  for (const auto &columnName : columnNames) {
+    {
+      const auto iter = columnsByName.find(columnName);
+      if (iter != columnsByName.end()) {
+        columns.push_back(iter->second);
+      } else {
+        throw std::runtime_error(std::string("No such column in table: ") +
+                                 columnName);
+      }
+    }
+
+    {
+      const auto iter = indicesByName.find(columnName);
+      if (iter != indicesByName.end()) {
+        indices.push_back(iter->second);
+      } else {
+        throw std::runtime_error(std::string("No such column in table: ") +
+                                 columnName);
+      }
+    }
+  }
+
+  Table table(columns);
+  for (uint64_t chunkId : ptmd->chunks) {
+    storage.read(chunkId, [&](std::istream &is) -> void {
+      RowDeserializer rowDeserializer(is);
+      while (rowDeserializer.hasNext()) {
+        const Row row = rowDeserializer.getNext();
+        Row selectedRow;
+
+        for (size_t index : indices) {
+          selectedRow.append(row.at_const(index)->copy());
+        }
+
+        table.append(std::move(selectedRow));
+      }
+    });
+  }
+
+  return table;
 }

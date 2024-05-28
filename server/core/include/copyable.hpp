@@ -4,7 +4,7 @@
 
 template <typename T> class ICopyable {
 public:
-  ~ICopyable() = default;
+  virtual ~ICopyable() = default;
 
   virtual std::unique_ptr<T> copy() const = 0;
 };

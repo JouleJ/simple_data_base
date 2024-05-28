@@ -41,3 +41,6 @@ void updatePersistentTable(IStorage &storage, uint64_t metaDataChunk,
                            std::function<Row(const Row &row)> mapping);
 void eraseFromPersistentTable(IStorage &storage, uint64_t metaDataChunk,
                               std::function<bool(const Row &row)> predicate);
+Table selectFromPersistentTable(IStorage &storage, uint64_t metaDataChunk,
+                                const std::vector<std::string> &columnNames,
+                                std::function<bool(const Row &row)> predicate);

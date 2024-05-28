@@ -11,6 +11,13 @@ public:
   virtual const char *what() const noexcept override = 0;
 };
 
+class TruthAssertionFailedError : public BaseUnitTestError {
+public:
+  ~TruthAssertionFailedError() noexcept override = default;
+
+  const char *what() const noexcept override;
+};
+
 class EqualityAssertionFailedError : public BaseUnitTestError {
 public:
   ~EqualityAssertionFailedError() noexcept override = default;
@@ -42,3 +49,5 @@ void assertEqualityOfMultisets(std::vector<T> lhs, std::vector<T> rhs) {
     assertEqualityByRef(lhs.at(i), rhs.at(i));
   }
 }
+
+void assertTrue(bool condition);

@@ -45,6 +45,11 @@ SchemaMetaData SchemaMetaDataDeserializer::getNext() {
   return schmd;
 }
 
+void initializeSchema(IStorage &storage, uint64_t metaDataChunk) {
+  SchemaMetaData schmd;
+  storage.writeSerializible(metaDataChunk, schmd);
+}
+
 void createTableInSchema(IStorage &storage, uint64_t metaDataChunk,
                          const std::string &tableName,
                          std::vector<Column> columns) {
@@ -70,4 +75,26 @@ void createTableInSchema(IStorage &storage, uint64_t metaDataChunk,
   schmd->tables[tableName] = chunkId;
 
   storage.writeSerializible(metaDataChunk, schmd.value());
+}
+
+std::optional<uint64_t> findTableInSchema(IStorage &storage,
+                                          uint64_t metaDataChunk,
+                                          const std::string &tableName) {
+  std::optional<SchemaMetaData> schmd;
+  storage.read(metaDataChunk, [&](std::istream &is) -> void {
+    SchemaMetaDataDeserializer schemaMetaDataDeserialzer(is);
+    schmd = fetchOne(schemaMetaDataDeserialzer);
+  });
+
+  if (!schmd) {
+    throw std::runtime_error(
+        "Failed to read schema meta data during creation of new table");
+  }
+
+  const auto iter = schmd->tables.find(tableName);
+  if (iter != schmd->tables.end()) {
+    return iter->second;
+  }
+
+  return {};
 }
