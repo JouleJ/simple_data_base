@@ -1,5 +1,6 @@
 #include "server/core/include/serialize.hpp"
 #include "server/core/include/meta.hpp"
+#include <ostream>
 
 void serializeToStream(int i, std::ostream &os) {
   unsigned char buf[sizeof(i) * 2], lastTok;
@@ -45,6 +46,17 @@ void serializeToStream(size_t size, std::ostream &os) {
   os.write(reinterpret_cast<char *>(&buf[0]), head);
 }
 
+void serializeToStream(bool b, std::ostream &os) {
+  unsigned char chr;
+  if (b) {
+    chr = static_cast<unsigned char>(0xFF);
+  } else {
+    chr = 0U;
+  }
+
+  os.write(reinterpret_cast<char *>(&chr), 1);
+}
+
 void serializeToStream(const std::string &s, std::ostream &os) {
   const size_t size = s.size();
   serializeToStream(size, os);
@@ -66,6 +78,11 @@ void Varchar::writeTo(std::ostream &os) const {
   serializeToStream(typeId, os);
 }
 
+void Boolean::writeTo(std::ostream &os) const {
+  const size_t typeId = static_cast<size_t>(TypeKind::BOOLEAN);
+  serializeToStream(typeId, os);
+}
+
 void IntegerValue::writeTo(std::ostream &os) const {
   const Type &type = *getType();
   serializeToStream(type, os);
@@ -75,6 +92,14 @@ void IntegerValue::writeTo(std::ostream &os) const {
 }
 
 void VarcharValue::writeTo(std::ostream &os) const {
+  const Type &type = *getType();
+  serializeToStream(type, os);
+
+  const auto value = get();
+  serializeToStream(value, os);
+}
+
+void BooleanValue::writeTo(std::ostream &os) const {
   const Type &type = *getType();
   serializeToStream(type, os);
 

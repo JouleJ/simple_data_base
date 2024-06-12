@@ -8,6 +8,7 @@
 enum class TypeKind : size_t {
   INTEGER = 1,
   VARCHAR = 2,
+  BOOLEAN = 3,
 };
 
 enum class Sign : uint8_t {
@@ -26,5 +27,6 @@ public:
 
 void serializeToStream(int i, std::ostream &os);
 void serializeToStream(size_t sz, std::ostream &os);
+void serializeToStream(bool b, std::ostream &os);
 void serializeToStream(const std::string &s, std::ostream &os);
 void serializeToStream(const ISerializable &object, std::ostream &os);

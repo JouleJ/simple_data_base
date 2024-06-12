@@ -18,6 +18,13 @@ public:
   const char *what() const noexcept override;
 };
 
+class FalsityAssertionFailedError : public BaseUnitTestError {
+public:
+  ~FalsityAssertionFailedError() noexcept override = default;
+
+  const char *what() const noexcept override;
+};
+
 class EqualityAssertionFailedError : public BaseUnitTestError {
 public:
   ~EqualityAssertionFailedError() noexcept override = default;
@@ -51,3 +58,4 @@ void assertEqualityOfMultisets(std::vector<T> lhs, std::vector<T> rhs) {
 }
 
 void assertTrue(bool condition);
+void assertFalse(bool condition);

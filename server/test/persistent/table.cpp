@@ -106,3 +106,19 @@ const int _2 = []() -> int {
           std::move(name), std::move(rows)));
   return 0;
 }();
+
+const int _3 = []() -> int {
+  std::string name = "big/increase-chunk-count";
+  std::vector<Row> rows;
+  for (int i = 0; i < 10'00'000; ++i) {
+    Row row;
+    row.append(std::make_unique<IntegerValue>(i));
+
+    rows.push_back(std::move(row));
+  }
+
+  registerTestCase(
+      std::make_unique<PersistentTableInsertAndFullScanIntoMemoryTestCase>(
+          std::move(name), std::move(rows)));
+  return 0;
+}();

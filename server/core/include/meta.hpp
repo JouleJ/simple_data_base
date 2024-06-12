@@ -5,6 +5,7 @@
 #include "server/core/include/stringable.hpp"
 
 #include <memory>
+#include <ostream>
 #include <string>
 #include <vector>
 
@@ -30,10 +31,19 @@ public:
   void writeTo(std::ostream &os) const override;
 };
 
+class Boolean : public Type {
+public:
+  ~Boolean() override = default;
+  std::string getName() const override { return "boolean"; }
+
+  void writeTo(std::ostream &os) const override;
+};
+
 const Type *getPrimitiveTypeByName(const std::string &name);
 
 bool isInteger(const Type *type);
 bool isVarchar(const Type *type);
+bool isBoolean(const Type *type);
 
 bool compareTypes(const Type *left, const Type *right);
 bool compareTypeVectors(const std::vector<const Type *> &left,
@@ -48,10 +58,22 @@ public:
   bool operator==(const Value &other) const;
   bool operator!=(const Value &other) const;
 
+  bool operator<(const Value &other) const;
+  bool operator>(const Value &other) const;
+
+  bool operator<=(const Value &other) const;
+  bool operator>=(const Value &other) const;
+
   virtual const Type *getType() const = 0;
   virtual bool isEqualTo(const Value *other) const = 0;
   virtual bool isLessThan(const Value *other) const = 0;
+  virtual bool test() const = 0;
 };
+
+std::unique_ptr<Value> computeAnd(std::unique_ptr<Value> left,
+                                  std::unique_ptr<Value> right);
+std::unique_ptr<Value> computeOr(std::unique_ptr<Value> left,
+                                 std::unique_ptr<Value> right);
 
 class IntegerValue : public Value {
   int content;
@@ -64,6 +86,7 @@ public:
   std::string toString() const override;
   bool isEqualTo(const Value *other) const override;
   bool isLessThan(const Value *other) const override;
+  bool test() const override;
 
   int get() const;
 
@@ -82,8 +105,28 @@ public:
   std::string toString() const override;
   bool isEqualTo(const Value *other) const override;
   bool isLessThan(const Value *other) const override;
+  bool test() const override;
 
   const std::string &get() const;
+
+  void writeTo(std::ostream &os) const override;
+  std::unique_ptr<Value> copy() const override;
+};
+
+class BooleanValue : public Value {
+  bool content;
+
+public:
+  BooleanValue(bool desiredContent);
+  ~BooleanValue() override = default;
+
+  const Type *getType() const override;
+  std::string toString() const override;
+  bool isEqualTo(const Value *other) const override;
+  bool isLessThan(const Value *other) const override;
+  bool test() const override;
+
+  bool get() const;
 
   void writeTo(std::ostream &os) const override;
   std::unique_ptr<Value> copy() const override;

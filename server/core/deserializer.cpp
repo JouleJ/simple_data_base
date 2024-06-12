@@ -88,6 +88,20 @@ std::string deserializeString(std::istream &is) {
   return result;
 }
 
+bool deserializeBoolean(std::istream &is) {
+  unsigned char chr;
+  is.read(reinterpret_cast<char *>(&chr), 1);
+
+  if (chr == 0U) {
+    return false;
+  } else if (chr == static_cast<unsigned char>(0xFF)) {
+    return true;
+  }
+
+  throw std::runtime_error(std::string("Invalid boolean-encoding byte: ") +
+                           std::to_string(chr));
+}
+
 TypeDeserializer::TypeDeserializer(std::istream &desiredIs)
     : BaseDeserializer(desiredIs) {}
 
@@ -101,6 +115,9 @@ const Type *TypeDeserializer::getNext() {
 
     case TypeKind::VARCHAR:
       return getPrimitiveTypeByName("varchar");
+
+    case TypeKind::BOOLEAN:
+      return getPrimitiveTypeByName("boolean");
 
     default:
       break;
@@ -139,6 +156,11 @@ std::unique_ptr<Value> ValueDeserializer::getNext() {
   if (isVarchar(type)) {
     const std::string content = deserializeString(is);
     return std::make_unique<VarcharValue>(content);
+  }
+
+  if (isBoolean(type)) {
+    const bool content = deserializeBoolean(is);
+    return std::make_unique<BooleanValue>(content);
   }
 
   throw std::runtime_error("Unknown type: cannot deserialize value");

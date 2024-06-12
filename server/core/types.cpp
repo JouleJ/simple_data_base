@@ -4,6 +4,7 @@
 
 static Integer integer;
 static Varchar varchar;
+static Boolean boolean;
 
 const Type *getPrimitiveTypeByName(const std::string &name) {
   if (name == "integer") {
@@ -12,6 +13,10 @@ const Type *getPrimitiveTypeByName(const std::string &name) {
 
   if (name == "varchar") {
     return &varchar;
+  }
+
+  if (name == "boolean") {
+    return &boolean;
   }
 
   throw std::runtime_error(std::string("No such type: ") + name);
@@ -25,6 +30,10 @@ bool isVarchar(const Type *type) {
   return dynamic_cast<const Varchar *>(type) != nullptr;
 }
 
+bool isBoolean(const Type *type) {
+  return dynamic_cast<const Boolean *>(type) != nullptr;
+}
+
 bool compareTypes(const Type *left, const Type *right) {
   if (isInteger(left)) {
     return isInteger(right);
@@ -32,6 +41,10 @@ bool compareTypes(const Type *left, const Type *right) {
 
   if (isVarchar(left)) {
     return isVarchar(right);
+  }
+
+  if (isBoolean(left)) {
+    return isBoolean(right);
   }
 
   return (left == right);

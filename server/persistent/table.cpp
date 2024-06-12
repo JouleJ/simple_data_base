@@ -115,7 +115,7 @@ static void increaseChunkCount(IStorage &storage, uint64_t metaDataChunk,
     storage.remove(chunkId);
   }
 
-  ptmd.chunks = chunks;
+  ptmd.chunks = std::move(chunks);
 }
 
 void insertRowIntoPersistentTable(IStorage &storage, uint64_t metaDataChunk,
@@ -135,14 +135,14 @@ void insertRowIntoPersistentTable(IStorage &storage, uint64_t metaDataChunk,
   uint64_t chunkId = ptmd->chunks[row.getHash() % chunkCount];
 
   storage.appendSerializible(chunkId, row);
-
   ptmd->rowCount += 1ULL;
-  storage.writeSerializible(metaDataChunk, ptmd.value());
 
-  if (ptmd->rowCount >
-      static_cast<uint64_t>(ptmd->chunks.size()) * maxAllowedRowsPerChunk) {
-    increaseChunkCount(storage, metaDataChunk, ptmd.value());
+  while (ptmd->rowCount >
+         static_cast<uint64_t>(ptmd->chunks.size()) * maxAllowedRowsPerChunk) {
+    increaseChunkCount(storage, metaDataChunk, *ptmd);
   }
+
+  storage.writeSerializible(metaDataChunk, *ptmd);
 }
 
 Table readPersistentTable(IStorage &storage, uint64_t metaDataChunk) {
@@ -291,6 +291,10 @@ Table selectFromPersistentTable(IStorage &storage, uint64_t metaDataChunk,
       RowDeserializer rowDeserializer(is);
       while (rowDeserializer.hasNext()) {
         const Row row = rowDeserializer.getNext();
+        if (!predicate(row)) {
+          continue;
+        }
+
         Row selectedRow;
 
         for (size_t index : indices) {

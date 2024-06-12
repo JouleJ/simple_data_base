@@ -8,6 +8,7 @@
 
 int deserializeInteger(std::istream &is);
 size_t deserializeSize(std::istream &is);
+bool deserializeBoolean(std::istream &is);
 std::string deserializeString(std::istream &is);
 
 template <typename T> class BaseDeserializer : public IStream<T> {
