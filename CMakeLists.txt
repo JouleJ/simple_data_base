@@ -21,6 +21,11 @@ add_executable(unittests ${TEST_CPP_FILES})
 target_link_libraries(unittests core persistent query)
 target_include_directories(unittests PRIVATE .)
 
+file(GLOB_RECURSE DRIVER_CPP_FILES server/driver/*.cpp)
+add_executable(server ${DRIVER_CPP_FILES})
+target_link_libraries(server core persistent query)
+target_include_directories(server PRIVATE .)
+
 add_test(NAME UnitTests COMMAND unittests)
 
 enable_testing()

@@ -3,9 +3,12 @@
 #include "server/core/include/meta.hpp"
 #include "server/core/include/stringable.hpp"
 #include <cstdint>
+#include <map>
+#include <optional>
 #include <ostream>
 #include <stdexcept>
 #include <string>
+#include <variant>
 
 const unsigned long long int MIN_ASCII_PRINTABLE = 32;
 const unsigned long long int MAX_ASCII_PRINTABLE = 127;
@@ -83,4 +86,33 @@ template <typename... Args>
 void format(std::ostream &os, const char *formatString, Args... args) {
   Formatter formatter(formatString, os);
   sendToFormatter(formatter, args...);
+}
+
+enum class CommandLineArgumentKind {
+  STRING,
+  INTEGER,
+  FLAG,
+};
+
+using CommandLineArgumentValue = std::variant<std::string, int, bool>;
+
+std::map<std::string, CommandLineArgumentValue>
+parseCommandLineArguments(std::map<std::string, CommandLineArgumentKind> scheme,
+                          int argc, char **argv);
+
+template <typename T>
+std::optional<T> getCommandLineArgumentValue(
+    const std::map<std::string, CommandLineArgumentValue> &parsingResult,
+    const std::string &argName) {
+  const auto iter = parsingResult.find(argName);
+  if (iter == parsingResult.end()) {
+    return {};
+  }
+
+  const T *ptr = std::get_if<T>(&(iter->second));
+  if (ptr == nullptr) {
+    return {};
+  }
+
+  return *ptr;
 }

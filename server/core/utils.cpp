@@ -6,6 +6,7 @@
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 
 std::string str2hex(unsigned long long int value) {
   std::string result;
@@ -233,3 +234,64 @@ void Formatter::formatSequenceElement(const Type *type) {
 }
 
 void sendToFormatter(Formatter &formatter) {}
+
+std::map<std::string, CommandLineArgumentValue>
+parseCommandLineArguments(std::map<std::string, CommandLineArgumentKind> scheme,
+                          int argc, char **argv) {
+  std::map<std::string, CommandLineArgumentValue> result;
+  for (const auto &[argName, argKind] : scheme) {
+    if (argKind == CommandLineArgumentKind::FLAG) {
+      result[argName] = CommandLineArgumentValue(false);
+    }
+  }
+
+  for (int i = 1; i < argc; ++i) {
+    const auto argName = std::string(argv[i]);
+    const auto iter = scheme.find(argName);
+
+    if (iter == scheme.end()) {
+      throw std::runtime_error(std::string("Unknown argument: ") + argName);
+    }
+
+    const auto argKind = iter->second;
+    switch (argKind) {
+      case CommandLineArgumentKind::FLAG:
+        result[argName] = CommandLineArgumentValue(true);
+        break;
+
+      case CommandLineArgumentKind::STRING:
+        if (i + 1 >= argc) {
+          throw std::runtime_error(std::string("String value expected after ") +
+                                   argName +
+                                   std::string(" but nothing is found"));
+        }
+
+        result[argName] = CommandLineArgumentValue(std::string(argv[++i]));
+        break;
+
+      case CommandLineArgumentKind::INTEGER:
+        if (i + 1 >= argc) {
+          throw std::runtime_error(
+              std::string("Integer value expected after ") + argName +
+              std::string(" but nothing is found"));
+        }
+
+        const auto argValue = std::string(argv[++i]);
+        try {
+          result[argName] = CommandLineArgumentValue(std::stoi(argValue));
+        } catch (const std::invalid_argument &err) {
+          throw std::runtime_error(
+              std::string("Cannot convert argument value ") + quote(argValue) +
+              std::string(" into integer"));
+        } catch (const std::out_of_range &err) {
+          throw std::runtime_error(
+              std::string("Argument value ") + argValue +
+              std::string(" out of range for integer type"));
+        }
+
+        break;
+    }
+  }
+
+  return result;
+}

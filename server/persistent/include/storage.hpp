@@ -41,4 +41,4 @@ std::optional<T> deserializeOne(const IStorage &storage, uint64_t chunkId) {
 }
 
 std::unique_ptr<IStorage> makeMemoryStorage();
-std::unique_ptr<IStorage> makeDiskStorage(std::filesystem::path &root);
+std::unique_ptr<IStorage> makeDiskStorage(const std::filesystem::path &root);

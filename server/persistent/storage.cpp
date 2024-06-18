@@ -87,7 +87,7 @@ class DiskStorage : public IStorage {
   }
 
 public:
-  DiskStorage(std::filesystem::path &desiredRoot) : root(desiredRoot) {}
+  DiskStorage(const std::filesystem::path &desiredRoot) : root(desiredRoot) {}
   ~DiskStorage() override = default;
 
   bool exists(uint64_t chunkId) const override {
@@ -148,6 +148,6 @@ public:
   }
 };
 
-std::unique_ptr<IStorage> makeDiskStorage(std::filesystem::path &root) {
+std::unique_ptr<IStorage> makeDiskStorage(const std::filesystem::path &root) {
   return std::make_unique<DiskStorage>(root);
 }

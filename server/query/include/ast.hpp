@@ -1,10 +1,12 @@
 #pragma once
 
+#include "server/core/include/deserializer.hpp"
 #include "server/core/include/meta.hpp"
 #include "server/core/include/unit.hpp"
 #include "server/persistent/include/storage.hpp"
 
 #include <algorithm>
+#include <istream>
 #include <map>
 #include <memory>
 #include <optional>
@@ -14,6 +16,14 @@
 class INode {
 public:
   virtual ~INode() = default;
+};
+
+class NodeDeserializer : public BaseDeserializer<std::unique_ptr<INode>> {
+public:
+  NodeDeserializer(std::istream &desiredIs);
+  ~NodeDeserializer() = default;
+
+  std::unique_ptr<INode> getNext() override;
 };
 
 class IComputableNode;
