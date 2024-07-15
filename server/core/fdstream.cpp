@@ -28,3 +28,21 @@ FdInputBuffer::int_type FdInputBuffer::underflow() {
 FdInputStream::FdInputStream(int desiredFd) : fdInputBuffer(desiredFd) {
   rdbuf(&fdInputBuffer);
 }
+
+FdOutputBuffer::FdOutputBuffer(int desiredFd) : fd(desiredFd) {
+  setg(&buffer[0], &buffer[0], &buffer[0]);
+}
+
+FdOutputBuffer::int_type
+FdOutputBuffer::overflow(FdOutputBuffer::int_type chr) {
+  if (pptr() < epptr()) {
+    pbump(chr);
+    return chr;
+  }
+
+  return EOF;
+}
+
+FdOutputStream::FdOutputStream(int desiredFd) : fdOutputBuffer(desiredFd) {
+  rdbuf(&fdOutputBuffer);
+}

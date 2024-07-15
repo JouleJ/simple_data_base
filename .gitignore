@@ -36,3 +36,15 @@ build/*
 
 # Clang cache
 .cache/*
+
+# Python Cache
+__pycache__
+
+# Python built package
+*.egg
+*.egg-info
+*.pyc
+*.pyo
+
+# Python virtual environments
+*/venv/*

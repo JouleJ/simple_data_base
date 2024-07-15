@@ -24,3 +24,25 @@ public:
   FdInputStream(int desiredFd);
   ~FdInputStream() override = default;
 };
+
+class FdOutputBuffer : public std::streambuf {
+  static const int bufferSize = 12 * 1024;
+
+  int fd;
+  char buffer[bufferSize];
+
+public:
+  FdOutputBuffer(int desiredFd);
+  ~FdOutputBuffer() override = default;
+
+protected:
+  int_type overflow(int_type chr) override;
+};
+
+class FdOutputStream : public std::ostream {
+  FdOutputBuffer fdOutputBuffer;
+
+public:
+  FdOutputStream(int desiredFd);
+  ~FdOutputStream() override = default;
+};

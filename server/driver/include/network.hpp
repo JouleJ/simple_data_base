@@ -8,12 +8,14 @@
 class TcpStream {
   int fd;
   FdInputStream fdInputStream;
+  FdOutputStream fdOutputStream;
 
 public:
   TcpStream(int desiredFd);
   ~TcpStream();
 
   std::istream &getInputStream();
+  std::ostream &getOutputStream();
 };
 
 class Server {

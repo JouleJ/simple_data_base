@@ -15,11 +15,14 @@
 
 static const int yes = 1;
 
-TcpStream::TcpStream(int desiredFd) : fd(desiredFd), fdInputStream(desiredFd) {}
+TcpStream::TcpStream(int desiredFd)
+    : fd(desiredFd), fdInputStream(desiredFd), fdOutputStream(desiredFd) {}
 
 TcpStream::~TcpStream() { close(fd); }
 
 std::istream &TcpStream::getInputStream() { return fdInputStream; }
+
+std::ostream &TcpStream::getOutputStream() { return fdOutputStream; }
 
 Server::Server(int desiredPort) : port(desiredPort) {
   int ret;

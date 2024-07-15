@@ -1,3 +1,3 @@
 #! /usr/bin/env bash
-#
-find server -name '*.*pp' | xargs clang-tidy
+
+clang-tidy `find server -name '*.*pp'` -- "$CFLAGS"

@@ -96,6 +96,19 @@ int main(int argc, char **argv) {
         [&](size_t queryId, std::unique_ptr<INode> node) -> void {
           getLogger().info("Got query, connectionId = %h, queryId = %h",
                            connectionId, queryId);
+
+          const ICommand<Unit> *unitCommandPtr =
+              dynamic_cast<const ICommand<Unit> *>(node.get());
+          if (unitCommandPtr != nullptr) {
+            unitCommandPtr->execute(*storage);
+          }
+
+          const ICommand<Table> *tableCommandPtr =
+              dynamic_cast<const ICommand<Table> *>(node.get());
+          if (tableCommandPtr != nullptr) {
+            const auto resultTable = tableCommandPtr->execute(*storage);
+            serializeToStream(resultTable, tcpStream.getOutputStream());
+          }
         });
   };
 
